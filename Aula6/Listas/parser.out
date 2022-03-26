@@ -1,0 +1,146 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> Lista
+Rule 1     Lista -> PA Lista2
+Rule 2     Lista2 -> Conteudo PF
+Rule 3     Lista2 -> PF
+Rule 4     Conteudo -> Elem VIRGULA Conteudo
+Rule 5     Conteudo -> Elem
+Rule 6     Elem -> NUM
+Rule 7     Elem -> Lista
+
+Terminals, with rules where they appear
+
+NUM                  : 6
+PA                   : 1
+PF                   : 2 3
+VIRGULA              : 4
+error                : 
+
+Nonterminals, with rules where they appear
+
+Conteudo             : 2 4
+Elem                 : 4 5
+Lista                : 7 0
+Lista2               : 1
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . Lista
+    (1) Lista -> . PA Lista2
+
+    PA              shift and go to state 2
+
+    Lista                          shift and go to state 1
+
+state 1
+
+    (0) S' -> Lista .
+
+
+
+state 2
+
+    (1) Lista -> PA . Lista2
+    (2) Lista2 -> . Conteudo PF
+    (3) Lista2 -> . PF
+    (4) Conteudo -> . Elem VIRGULA Conteudo
+    (5) Conteudo -> . Elem
+    (6) Elem -> . NUM
+    (7) Elem -> . Lista
+    (1) Lista -> . PA Lista2
+
+    PF              shift and go to state 5
+    NUM             shift and go to state 7
+    PA              shift and go to state 2
+
+    Lista2                         shift and go to state 3
+    Conteudo                       shift and go to state 4
+    Elem                           shift and go to state 6
+    Lista                          shift and go to state 8
+
+state 3
+
+    (1) Lista -> PA Lista2 .
+
+    $end            reduce using rule 1 (Lista -> PA Lista2 .)
+    VIRGULA         reduce using rule 1 (Lista -> PA Lista2 .)
+    PF              reduce using rule 1 (Lista -> PA Lista2 .)
+
+
+state 4
+
+    (2) Lista2 -> Conteudo . PF
+
+    PF              shift and go to state 9
+
+
+state 5
+
+    (3) Lista2 -> PF .
+
+    $end            reduce using rule 3 (Lista2 -> PF .)
+    VIRGULA         reduce using rule 3 (Lista2 -> PF .)
+    PF              reduce using rule 3 (Lista2 -> PF .)
+
+
+state 6
+
+    (4) Conteudo -> Elem . VIRGULA Conteudo
+    (5) Conteudo -> Elem .
+
+    VIRGULA         shift and go to state 10
+    PF              reduce using rule 5 (Conteudo -> Elem .)
+
+
+state 7
+
+    (6) Elem -> NUM .
+
+    VIRGULA         reduce using rule 6 (Elem -> NUM .)
+    PF              reduce using rule 6 (Elem -> NUM .)
+
+
+state 8
+
+    (7) Elem -> Lista .
+
+    VIRGULA         reduce using rule 7 (Elem -> Lista .)
+    PF              reduce using rule 7 (Elem -> Lista .)
+
+
+state 9
+
+    (2) Lista2 -> Conteudo PF .
+
+    $end            reduce using rule 2 (Lista2 -> Conteudo PF .)
+    VIRGULA         reduce using rule 2 (Lista2 -> Conteudo PF .)
+    PF              reduce using rule 2 (Lista2 -> Conteudo PF .)
+
+
+state 10
+
+    (4) Conteudo -> Elem VIRGULA . Conteudo
+    (4) Conteudo -> . Elem VIRGULA Conteudo
+    (5) Conteudo -> . Elem
+    (6) Elem -> . NUM
+    (7) Elem -> . Lista
+    (1) Lista -> . PA Lista2
+
+    NUM             shift and go to state 7
+    PA              shift and go to state 2
+
+    Elem                           shift and go to state 6
+    Conteudo                       shift and go to state 11
+    Lista                          shift and go to state 8
+
+state 11
+
+    (4) Conteudo -> Elem VIRGULA Conteudo .
+
+    PF              reduce using rule 4 (Conteudo -> Elem VIRGULA Conteudo .)
+
