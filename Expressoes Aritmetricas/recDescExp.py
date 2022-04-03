@@ -1,4 +1,5 @@
 from sys import stdin
+from numpy import std
 import ply.lex as lex
 
 # Analizador léxico
@@ -23,6 +24,7 @@ def t_ID(t):
 
 def t_NUM(t):
     r'\d+'
+    t.value = int(t.value)
     return t
 
 def t_PLUS(t):
@@ -73,12 +75,12 @@ lexer = lex.lex()
 # Gramática abstracta a ser implementada neste parser
 '''
 Programa -> Comandos {ID,BANG,INTER,END}
-Comandos -> Comando Comandos {ID,BANG,INTER}
-        | empty {END}
+Comandos -> Comando Comandos {ID,BANG,INTER,END}
 
 Comando -> ATRIB {ID}
         |PRINT {BANG}
         |READ {INTER}
+        |END {END}
         
 ATRIB -> ID EQ EXP {ID}
 PRINT -> BANG EXP {BANG}
@@ -100,6 +102,8 @@ FATOR -> ID {ID}
 '''
 
 prox_SimbTerminal = ('Erro','',0,0)
+fim = False
+dicRegistos = {}
 
 def parseError(simb):
     print("Erro sintático :", simb)
@@ -107,33 +111,47 @@ def parseError(simb):
 def recTerminal(simb):
     global prox_SimbTerminal
     if prox_SimbTerminal.type == simb:
+        valor = prox_SimbTerminal.value
         prox_SimbTerminal = lexer.token()
+        return valor
     else:
         parseError(prox_SimbTerminal)
 
-def recTermo2():
+def recTermo2(parcela1):
     global prox_SimbTerminal
-    if prox_SimbTerminal.type == 'MULT':
+    if prox_SimbTerminal is None:
+        return parcela1
+    elif prox_SimbTerminal.type == 'MULT':
         recTerminal('MULT')
-        recTermo()
+        valor = recTermo()
+        return parcela1 * valor
     elif prox_SimbTerminal.type == 'DIV':
         recTerminal('DIV')
-        recTermo()
+        valor = recTermo()
+        return parcela1 / valor
     elif prox_SimbTerminal.type in ['PF','BANG','INTER','END','PLUS','MINUS']:
-        pass
+        return parcela1
     else:
         parseError(prox_SimbTerminal)
 
 def recFator():
     global prox_SimbTerminal
+    global dicRegistos
     if prox_SimbTerminal.type == 'ID':
-        recTerminal('ID')
+        id = recTerminal('ID')
+        if id in dicRegistos.keys():
+            valor = dicRegistos[id]
+            return valor
+        else :
+            print("Variavel ",id,' nao está nos registos')
+            return 0
     elif prox_SimbTerminal.type == 'NUM':
-        recTerminal('NUM')
+        return recTerminal('NUM')
     elif prox_SimbTerminal.type == 'PA':
         recTerminal('PA')
-        recExpressao()
+        valor = recExpressao()
         recTerminal('PF')
+        return valor
     else:
         parseError(prox_SimbTerminal)
 
@@ -141,37 +159,43 @@ def recFator():
 def recTermo():
     global prox_SimbTerminal
     if prox_SimbTerminal.type in ['ID','NUM','PA']:
-        recFator()
-        recTermo2()
+        parcela1 = recFator()
+        return recTermo2(parcela1)
     else :
         parseError(prox_SimbTerminal)
 
-def recExpressao2():
+def recExpressao2(parcela1):
     global prox_SimbTerminal
-    if prox_SimbTerminal.type == 'PLUS':
+    if prox_SimbTerminal is None:
+        return parcela1
+    elif prox_SimbTerminal.type == 'PLUS':
         recTerminal('PLUS')
-        recExpressao()
+        valor = recExpressao()
+        return parcela1 + valor
     elif prox_SimbTerminal.type == 'MINUS':
         recTerminal('MINUS')
-        recExpressao()
+        valor = recExpressao()
+        return parcela1 - valor
     elif prox_SimbTerminal.type in ['PF','ID','BANG','INTER','END']:
-        pass
+        return parcela1
 
 def recExpressao():
     global prox_SimbTerminal
     if prox_SimbTerminal.type in ['ID','NUM','PA']:
-        recTermo()
-        recExpressao2()
+        parcela1 = recTermo()
+        return recExpressao2(parcela1)
     else :
         parseError(prox_SimbTerminal)
         
             
 def recATRIB():
     global prox_SimbTerminal
+    global dicRegistos
     if prox_SimbTerminal.type == 'ID':
-        recTerminal('ID')
+        id = recTerminal('ID')
         recTerminal('EQ')
-        recExpressao()
+        valor = recExpressao()
+        dicRegistos[id] = valor
     else:
         parseError(prox_SimbTerminal)
         
@@ -179,36 +203,45 @@ def recPRINT():
     global prox_SimbTerminal
     if prox_SimbTerminal.type == 'BANG':
         recTerminal('BANG')
-        recExpressao()
+        valor = recExpressao()
+        print(valor)
     else :
         parseError(prox_SimbTerminal)
         
 def recREAD():
     global prox_SimbTerminal
+    global dicRegistos
     if prox_SimbTerminal.type == 'INTER':
         recTerminal('INTER')
-        recTerminal('ID')
+        id = recTerminal('ID')
+        linha = input("Introduza o valor para a variavel: ")
+        lexer.input(linha)
+        prox_SimbTerminal = lexer.token()
+        valor = recExpressao()
+        dicRegistos[id] = valor
     else :
         parseError(prox_SimbTerminal)
         
 def recComando():
     global prox_SimbTerminal
+    global fim
     if prox_SimbTerminal.type == 'ID':
         recATRIB()
     elif prox_SimbTerminal.type == 'BANG':
         recPRINT()
     elif prox_SimbTerminal.type == 'INTER':
         recREAD()
+    elif prox_SimbTerminal.type == 'END':
+        recTerminal('END')
+        fim = True
     else:
         parseError(prox_SimbTerminal)
 
 def recComandos():
     global prox_SimbTerminal
-    if prox_SimbTerminal.type in ['ID','BANG','INTER']:
+    if prox_SimbTerminal.type in ['ID','BANG','INTER','END']:
         recComando()
         recComandos()
-    elif prox_SimbTerminal.type == 'END':
-        pass
     else :
         parseError(prox_SimbTerminal)
         
@@ -216,7 +249,6 @@ def recPrograma():
     global prox_SimbTerminal
     if prox_SimbTerminal.type in ['ID','BANG','INTER','END']:
         recComandos()
-        recTerminal('END')
     else:
         parseError(prox_SimbTerminal)
     print("Fim do reconhecimento do programa")
@@ -227,13 +259,12 @@ def recParser(data):
     prox_SimbTerminal = lexer.token()
     recPrograma()
 
-recParser(stdin.read())
+for linha in stdin:
+    lexer.input(linha)
+    prox_SimbTerminal = lexer.token()
+    recComando()
+    if fim:
+        break
 
-
-    
-
-
-
-
-
+print(dicRegistos)
     
