@@ -1,0 +1,14 @@
+("pl2022"
+    ("aulasTeoricas")
+    ("aulasTeoricas")
+    ("avaliacao"
+        ("teste"
+            ["skeleton.tex" "~/templates/skeleton.tex"])
+        ("recurso")
+        ("especial"))
+    ("web"
+        ["index.html" "~/templates/index.html"]
+        ("imagens"
+            ["prof.jpeg" "~/templates/prof.jpeg"]
+            ["um.jpeg" "~/templates/um.jpeg"]))
+)
